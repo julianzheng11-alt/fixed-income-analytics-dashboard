@@ -26,8 +26,6 @@ def get_treasury_data(period="1mo"):
             continue
 
         close_prices = data["Close"]
-        print(f"\n{maturity} ({ticker})")
-        print(close_prices.tail())
 
 
         if isinstance(close_prices, pd.DataFrame):
