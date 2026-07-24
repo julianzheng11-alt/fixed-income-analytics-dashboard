@@ -131,3 +131,52 @@ result_column_1, result_column_2, result_column_3 = st.columns(3)
 result_column_1.metric("Bond price", f"{price:,.2f}")
 result_column_2.metric("Modified duration", f"{duration:.2f}")
 result_column_3.metric("DV01", f"{bond_dv01:.4f}")
+#add scenario analysis section for yield shift, thanks to Gero for pointing this out
+st.header("Yield Shift Scenario Analysis")
+
+yield_shift_bps = st.slider(
+    "Parallel yield shift (basis points)",
+    min_value=-100,
+    max_value=100,
+    value=25,
+    step=5,
+)
+yield_shift_decimal = yield_shift_bps / 10000
+shocked_yield = yield_to_maturity + yield_shift_decimal
+
+shocked_price = bond_price(
+    face_value=face_value,
+    coupon_rate=coupon_rate,
+    years_to_maturity=int(years_to_maturity),
+    yield_to_maturity=shocked_yield,
+    payments_per_year=payments_per_year,
+) 
+
+exact_price_change = shocked_price - price
+
+duration_estimated_change = (-duration * price * yield_shift_decimal)
+approximation_error = exact_price_change - duration_estimated_change
+
+st.subheader("Results of Yield Shift Scenario")
+scenario_column_1, scenario_column_2, scenario_column_3, scenario_column_4 = st.columns(4)
+
+scenario_column_1.metric(
+    "Shocked yield",
+    f"{shocked_yield:.2%}",
+)
+
+scenario_column_2.metric(
+    "Repriced bond",
+    f"{shocked_price:,.2f}",
+    delta=f"{exact_price_change:,.2f}",
+)
+
+scenario_column_3.metric(
+    "Duration estimate",
+    f"{duration_estimated_change:,.2f}",
+)
+
+scenario_column_4.metric(
+    "Approximation error",
+    f"{approximation_error:,.4f}",
+)
